@@ -7,7 +7,7 @@ type Props = {
 };
 
 export const PrimaryButton: VFC<Props> = memo((props) => {
-  const { children } = props;
+  const { children, onClick } = props;
   return (
     <Button
       bg="teal.400"
