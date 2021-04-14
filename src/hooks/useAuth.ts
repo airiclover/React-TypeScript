@@ -1,34 +1,40 @@
-import axios from "axios";
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useState } from "react";
-import { useHistory } from "react-router";
+import axios from "axios";
+import { useHistory } from "react-router-dom";
+
 import { User } from "../types/api/user";
+
+import { useLoginUser } from "./useLoginUser";
 import { useMessege } from "./useMessege";
 
 export const useAuth = () => {
   const history = useHistory();
   const { showMessage } = useMessege();
+  const { setLoginUser } = useLoginUser();
 
   const [loading, setLoading] = useState(false);
 
-  const login = useCallback(
-    (id: string) => {
-      setLoading(true);
-      axios
-        .get<User>(`https://jsonplaceholder.typicode.com/users/${id}`)
-        .then((res) => {
-          if (res.data) {
-            showMessage({ title: "ログインしました", status: "success" });
-            history.push("/home");
-          } else {
-            showMessage({ title: "ユーザーが見つかりません", status: "error" });
-          }
-        })
-        .catch(() =>
-          showMessage({ title: "ログインできません", status: "error" })
-        )
-        .finally(() => setLoading(false));
-    },
-    [history, showMessage]
-  );
+  const login = useCallback((id: string) => {
+    setLoading(true);
+    axios
+      .get<User>(`https://jsonplaceholder.typicode.com/users/${id}`)
+      .then(async (res) => {
+        if (res.data) {
+          const isAdmin = res.data.id === 10 ? true : false;
+          setLoginUser({ ...res.data, isAdmin });
+          showMessage({ title: "ログインしました", status: "success" });
+          history.push("/home");
+        } else {
+          showMessage({ title: "ユーザーが見つかりません", status: "error" });
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        showMessage({ title: "ユーザーが見つかりません", status: "error" });
+        setLoading(false);
+      });
+  }, []);
+
   return { login, loading };
 };
